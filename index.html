@@ -262,8 +262,53 @@ body{font-family:var(--sans);background:var(--bg);color:var(--t1);font-size:12px
 .dot-r{background:var(--red);}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
 </style>
+<style>
+#pw-gate{position:fixed;inset:0;z-index:99999;background:#18181b;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;}
+#pw-gate.hidden{display:none;}
+.pw-box{background:#ffffff;border-radius:12px;padding:40px 36px;width:340px;box-shadow:0 8px 32px rgba(0,0,0,.3);text-align:center;}
+.pw-logo{font-size:13px;font-weight:600;letter-spacing:.08em;color:#71717a;margin-bottom:24px;text-transform:uppercase;}
+.pw-box h2{font-size:18px;font-weight:700;color:#18181b;margin-bottom:6px;}
+.pw-box p{font-size:12px;color:#71717a;margin-bottom:24px;}
+.pw-input{width:100%;border:1px solid #e8e8e5;border-radius:6px;padding:10px 14px;font-size:14px;outline:none;font-family:'Sora',sans-serif;color:#18181b;transition:border .2s;}
+.pw-input:focus{border-color:#0a8f5c;}
+.pw-btn{margin-top:14px;width:100%;background:#0a8f5c;color:#fff;border:none;border-radius:6px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;transition:background .2s;}
+.pw-btn:hover{background:#088050;}
+.pw-error{margin-top:10px;font-size:12px;color:#c9252d;min-height:16px;}
+</style>
 </head>
 <body>
+
+<!-- PASSWORD GATE -->
+<div id="pw-gate">
+  <div class="pw-box">
+    <div class="pw-logo">Afriqom · KRA Demo</div>
+    <h2>Enter Access Password</h2>
+    <p>This demo is restricted. Please enter the password to continue.</p>
+    <input id="pw-input" class="pw-input" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')checkPw()"/>
+    <button class="pw-btn" onclick="checkPw()">Continue</button>
+    <div id="pw-error" class="pw-error"></div>
+  </div>
+</div>
+<script>
+(function(){
+  const SESSION_KEY='kra_demo_auth';
+  const PASSWORD='Afriqom2025';
+  if(sessionStorage.getItem(SESSION_KEY)==='1'){
+    document.getElementById('pw-gate').classList.add('hidden');
+  }
+  window.checkPw=function(){
+    const val=document.getElementById('pw-input').value;
+    if(val===PASSWORD){
+      sessionStorage.setItem(SESSION_KEY,'1');
+      document.getElementById('pw-gate').classList.add('hidden');
+    } else {
+      document.getElementById('pw-error').textContent='Incorrect password. Please try again.';
+      document.getElementById('pw-input').value='';
+      document.getElementById('pw-input').focus();
+    }
+  };
+})();
+</script>
 
 <!-- TOPBAR -->
 <div class="topbar">
