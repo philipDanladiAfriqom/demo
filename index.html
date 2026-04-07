@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kenya Fertiliser Risk Monitor · AF2Q</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f7f7f5;
+  --w:#ffffff;
+  --green:#0a8f5c;
+  --green-l:#e7f5ee;
+  --green-b:rgba(10,143,92,.2);
+  --red:#c9252d;
+  --red-l:#fff0f0;
+  --red-b:rgba(201,37,45,.2);
+  --amber:#c97a00;
+  --amber-l:#fff9eb;
+  --amber-b:rgba(201,122,0,.2);
+  --blue:#1971c2;
+  --bdr:#e8e8e5;
+  --bdr2:#d8d8d4;
+  --t1:#18181b;
+  --t2:#3f3f46;
+  --t3:#71717a;
+  --t4:#a1a1aa;
+  --sans:'Sora',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04);
+  --sh2:0 2px 8px rgba(0,0,0,.08);
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--t1);font-size:12px;-webkit-font-smoothing:antialiased;line-height:1.4;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:#f0f0ed;}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px;}
+
+/* ── TOPBAR ─────────────────────────────── */
+.topbar{
+  background:var(--w);border-bottom:1px solid var(--bdr);
+  padding:10px 20px 0;
+}
+.tb-main{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;}
+.tb-brand{display:flex;align-items:center;gap:12px;}
+.logo-box{
+  font-family:var(--mono);font-size:22px;font-weight:700;
+  color:var(--t1);letter-spacing:-.01em;
+  display:flex;align-items:center;gap:0;
+}
+.logo-box .af{color:var(--t1);}
+.logo-box .two{color:var(--t1);}
+.logo-box .q{
+  color:var(--w);background:var(--green);
+  border-radius:50%;width:24px;height:24px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;margin-left:1px;
+}
+.brand-text{border-left:1px solid var(--bdr);padding-left:12px;}
+.brand-title{font-size:14px;font-weight:700;color:var(--t1);}
+.brand-sub{font-size:10.5px;color:var(--t3);margin-top:1px;}
+.tb-badges{display:flex;align-items:center;gap:8px;}
+.tb-badge{
+  font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;
+  padding:5px 12px;border-radius:20px;text-transform:uppercase;
+}
+.tbb-red{background:#fde8e8;color:var(--red);border:1.5px solid rgba(201,37,45,.25);}
+.tbb-gray{background:var(--w);color:var(--t2);border:1.5px solid var(--bdr2);}
+.tbb-date{background:var(--w);color:var(--t2);border:1.5px solid var(--bdr2);}
+
+/* ── NAV ────────────────────────────────── */
+.nav{display:flex;gap:0;border-top:1px solid var(--bdr);}
+.nav-item{
+  font-size:12px;font-weight:500;color:var(--t3);
+  padding:8px 18px;cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .15s;margin-bottom:-1px;
+}
+.nav-item:hover{color:var(--t2);}
+.nav-item.on{color:var(--green);border-bottom-color:var(--green);font-weight:600;}
+
+/* ── KPI STRIP ──────────────────────────── */
+.kstrip{
+  background:var(--w);border-bottom:1px solid var(--bdr);
+  display:flex;overflow-x:auto;
+}
+.ki{
+  display:flex;align-items:stretch;flex-shrink:0;
+  border-right:1px solid var(--bdr);
+}
+.ki-accent{width:3px;flex-shrink:0;}
+.ki-accent.red{background:var(--red);}
+.ki-accent.amber{background:var(--amber);}
+.ki-accent.green{background:var(--green);}
+.ki-accent.blue{background:var(--blue);}
+.ki-body{padding:8px 14px 7px;}
+.ki-top{display:flex;align-items:baseline;gap:6px;margin-bottom:2px;}
+.ki-val{font-family:var(--mono);font-size:19px;font-weight:700;line-height:1;}
+.ki-val.red{color:var(--red);}
+.ki-val.amber{color:var(--amber);}
+.ki-val.green{color:var(--green);}
+.ki-lbl{font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t4);}
+.ki-sub{font-size:10px;color:var(--t3);}
+.ki-sub .chg{font-family:var(--mono);}
+.ki-sub .neg{color:var(--red);}
+.ki-sub .pos{color:var(--green);}
+
+/* ── INSIGHT ROW ────────────────────────── */
+.irow{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr auto auto;
+  gap:10px;padding:10px 20px;
+  background:var(--bg);border-bottom:1px solid var(--bdr);
+  align-items:stretch;
+}
+.ic{background:var(--w);border:1px solid var(--bdr);border-radius:8px;padding:11px 13px;box-shadow:var(--sh);}
+.ic-tag{
+  display:flex;align-items:center;gap:6px;
+  font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t4);
+  margin-bottom:7px;
+}
+.ic-line{width:18px;height:2px;border-radius:1px;flex-shrink:0;}
+.ic-head{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:5px;line-height:1.25;}
+.ic-body{font-size:10.5px;color:var(--t2);line-height:1.5;}
+
+/* Warning box */
+.warn-box{
+  background:#c9252d;border-radius:8px;
+  padding:14px 18px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;min-width:130px;box-shadow:var(--sh2);
+}
+.wb-label{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.75);margin-bottom:4px;}
+.wb-main{font-size:18px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:4px;}
+.wb-sub{font-size:12px;font-weight:600;color:rgba(255,255,255,.9);}
+
+/* Mini price grid */
+.mpgrid{
+  background:var(--w);border:1px solid var(--bdr);border-radius:8px;
+  overflow:hidden;box-shadow:var(--sh);
+  display:grid;grid-template-columns:62px repeat(4,1fr);
+  font-size:10.5px;min-width:230px;
+}
+.mpg{
+  padding:5px 7px;border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:center;
+}
+.mpg:nth-child(5n){border-right:none;}
+.mpg-hd{font-weight:700;background:#f6f6f4;color:var(--t1);font-size:10.5px;}
+.mpg-lbl{font-size:9px;font-weight:600;color:var(--t3);background:#f9f9f7;justify-content:flex-end;padding-right:8px;}
+.mpg-last .mpg{border-bottom:none;}
+.mpv{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:3px;white-space:nowrap;}
+.mpv1{background:var(--green);color:#fff;}
+.mpv2{background:#fa5252;color:#fff;}
+.mpv3{background:#fd7e14;color:#fff;}
+
+/* ── MAIN AREA ──────────────────────────── */
+.main{padding:10px 20px;display:grid;grid-template-columns:1fr 1.6fr 280px;gap:10px;}
+
+/* card */
+.card{background:var(--w);border:1px solid var(--bdr);border-radius:8px;box-shadow:var(--sh);overflow:hidden;}
+.ch{
+  padding:9px 12px 8px;border-bottom:1px solid var(--bdr);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:6px;
+}
+.ch-t{font-size:11.5px;font-weight:700;color:var(--t1);}
+.ch-s{font-size:9.5px;color:var(--t4);margin-top:1px;}
+.cb{padding:10px 12px;}
+
+/* ── BADGE ──────────────────────────────── */
+.bd{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:3px;}
+.bd-r{background:var(--red-l);color:var(--red);border:1px solid var(--red-b);}
+.bd-a{background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-b);}
+.bd-g{background:var(--green-l);color:var(--green);border:1px solid var(--green-b);}
+.bd-active{background:#e8f5e9;color:#0a8f5c;border:1px solid rgba(10,143,92,.25);font-size:9px;padding:3px 8px;border-radius:12px;}
+
+/* ── CHART WRAPPERS ─────────────────────── */
+.cw{position:relative;}
+
+/* ── LEGEND ─────────────────────────────── */
+.leg{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.lg-i{display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--t3);}
+.lg-sq{width:7px;height:7px;border-radius:2px;flex-shrink:0;}
+.lg-ln{width:14px;height:2px;border-radius:1px;flex-shrink:0;}
+.lg-da{width:14px;height:0;border-top:2px dashed;flex-shrink:0;}
+
+/* ── TF BUTTONS ─────────────────────────── */
+.tf{display:flex;gap:1px;background:#f0f0ed;border:1px solid var(--bdr);border-radius:5px;padding:2px;}
+.tfb{
+  font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.06em;
+  padding:2px 7px;border:none;cursor:pointer;border-radius:3px;
+  background:transparent;color:var(--t3);transition:all .12s;
+}
+.tfb.on{background:var(--w);color:var(--green);box-shadow:0 1px 2px rgba(0,0,0,.08);}
+
+/* ── NEWS FEED ──────────────────────────── */
+.nf{overflow-y:auto;max-height:400px;}
+.ni{padding:8px 11px;border-bottom:1px solid var(--bdr);display:flex;gap:8px;align-items:flex-start;}
+.ni:last-child{border-bottom:none;}
+.nb{font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0;margin-top:1px;}
+.nb-r{background:var(--red-l);color:var(--red);border:1px solid var(--red-b);}
+.nb-a{background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-b);}
+.ni-b{flex:1;}
+.ni-cat{font-size:8.5px;color:var(--t4);letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px;}
+.ni-title{font-size:11px;font-weight:700;color:var(--t1);margin-bottom:2px;line-height:1.3;}
+.ni-desc{font-size:10px;color:var(--t2);line-height:1.4;}
+.ni-action{
+  display:inline-block;margin-top:4px;font-size:9px;font-weight:600;
+  color:var(--green);background:var(--green-l);border:1px solid var(--green-b);
+  padding:2px 7px;border-radius:3px;
+}
+.ni-date{font-family:var(--mono);font-size:8.5px;color:var(--t4);flex-shrink:0;}
+
+/* ── BOTTOM ROW ─────────────────────────── */
+.bot{padding:0 20px 16px;display:grid;grid-template-columns:1fr 200px 240px 240px;gap:10px;}
+
+/* ── TOGGLE ─────────────────────────────── */
+.tg{display:flex;background:#f0f0ed;border:1px solid var(--bdr);border-radius:20px;padding:2px;overflow:hidden;}
+.tgb{font-family:var(--mono);font-size:8.5px;font-weight:600;padding:3px 9px;border:none;cursor:pointer;background:transparent;color:var(--t3);border-radius:20px;transition:all .12s;}
+.tgb.on{background:var(--green);color:#fff;}
+
+/* ── AVAIL BARS ─────────────────────────── */
+.ab{margin-bottom:0;}
+.ab-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #f3f3f0;}
+.ab-row:last-child{border-bottom:none;}
+.ab-name{font-size:10.5px;font-weight:600;color:var(--t1);min-width:30px;}
+.ab-track{flex:1;height:6px;background:#f0f0ed;border-radius:3px;overflow:hidden;}
+.ab-fill{height:100%;border-radius:3px;}
+.ab-val{font-family:var(--mono);font-size:10px;font-weight:600;min-width:35px;text-align:right;}
+
+/* ── SUPPLY TABLE ───────────────────────── */
+.stbl{width:100%;border-collapse:collapse;font-size:10.5px;}
+.stbl th{
+  font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t4);padding:5px 10px;text-align:right;
+  background:#f6f6f4;border-bottom:1px solid var(--bdr);
+}
+.stbl th:first-child{text-align:left;}
+.stbl td{
+  padding:5.5px 10px;text-align:right;
+  font-family:var(--mono);font-size:10.5px;color:var(--t2);
+  border-bottom:1px solid #f3f3f0;
+}
+.stbl td:first-child{text-align:left;font-family:var(--sans);font-weight:700;color:var(--t1);}
+.stbl tr.tot td{border-top:1.5px solid var(--bdr2);border-bottom:none;font-weight:700;color:var(--t1);}
+.stbl tr:hover td{background:#fafaf8;}
+.rv{color:var(--red)!important;}
+.av{color:var(--amber)!important;}
+.gv{color:var(--green)!important;}
+
+/* shrink callout */
+.shrink{
+  background:#fff0f0;border:1px solid rgba(201,37,45,.2);
+  border-radius:6px;padding:8px 10px;margin:8px 10px 10px;
+}
+.sl{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a1920;margin-bottom:3px;}
+.sv{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--red);line-height:1;}
+.ss{font-size:9.5px;color:var(--t3);margin-top:2px;}
+
+/* pulse */
+.dot{width:6px;height:6px;border-radius:50%;animation:blink 1.5s infinite;flex-shrink:0;}
+.dot-r{background:var(--red);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-main">
+    <div class="tb-brand">
+      <div class="logo-box">
+        <span class="af">AF2</span><span class="q">Q</span>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">Kenya Fertiliser Risk Monitor</div>
+        <div class="brand-sub">Africa Fertiliser 2.0 initiative by AFRIQOM, &nbsp;in collaboration with IFDC</div>
+      </div>
+    </div>
+    <div class="tb-badges">
+      <span class="tb-badge tbb-red">Severe S3</span>
+      <span class="tb-badge tbb-gray">Model V13 – Q1 Actuals Locked</span>
+      <span class="tb-badge tbb-date">01 Apr 2026</span>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item on">Overview</div>
+    <div class="nav-item">Prices</div>
+    <div class="nav-item">Imports</div>
+    <div class="nav-item">Gap</div>
+    <div class="nav-item">Food Systems</div>
+    <div class="nav-item">Alerts</div>
+  </nav>
+</div>
+
+<!-- KPI STRIP -->
+<div class="kstrip">
+  <div class="ki"><div class="ki-accent red"></div><div class="ki-body">
+    <div class="ki-lbl">Urea CFR · Mar-26</div>
+    <div class="ki-top"><span class="ki-val red">$887</span></div>
+    <div class="ki-sub"><span class="chg neg">▲ +97%</span> vs 3-yr Olympic avg</div>
+  </div></div>
+  <div class="ki"><div class="ki-accent red"></div><div class="ki-body">
+    <div class="ki-lbl">2026 Import Shortfall</div>
+    <div class="ki-top"><span class="ki-val red">-37.7%</span></div>
+    <div class="ki-sub"><span class="chg neg">▼ 289,513 t</span> vs 2025 actuals</div>
+  </div></div>
+  <div class="ki"><div class="ki-accent amber"></div><div class="ki-body">
+    <div class="ki-lbl">Replacement Cost Exposure</div>
+    <div class="ki-top"><span class="ki-val amber">$403M</span></div>
+    <div class="ki-sub">Cumulative in-season · S3</div>
+  </div></div>
+  <div class="ki"><div class="ki-accent red"></div><div class="ki-body">
+    <div class="ki-lbl">National Yield Loss</div>
+    <div class="ki-top"><span class="ki-val red">12–22%</span></div>
+    <div class="ki-sub">Central <span class="neg">~16%</span> · N-deficit driven</div>
+  </div></div>
+  <div class="ki"><div class="ki-accent amber"></div><div class="ki-body">
+    <div class="ki-lbl">Crop Value at Risk</div>
+    <div class="ki-top"><span class="ki-val amber">$460M</span></div>
+    <div class="ki-sub">$110M–$460M · Maize staple</div>
+  </div></div>
+  <div class="ki"><div class="ki-accent blue"></div><div class="ki-body">
+    <div class="ki-lbl">DAP very firm</div>
+    <div class="ki-top"><span class="ki-val" style="color:var(--blue);">$865</span></div>
+    <div class="ki-sub">OCP cuts production <span class="neg">-30%</span></div>
+  </div></div>
+  <div class="ki" style="border-right:none;"><div class="ki-accent amber"></div><div class="ki-body">
+    <div class="ki-lbl">UREA extremely firm</div>
+    <div class="ki-top"><span class="ki-val amber">$890</span></div>
+    <div class="ki-sub">India in the market for 2.5mn t</div>
+  </div></div>
+</div>
+
+<!-- INSIGHT ROW -->
+<div class="irow">
+  <div class="ic">
+    <div class="ic-tag"><div class="ic-line" style="background:var(--red);"></div>Price Shock</div>
+    <div class="ic-head">Structural break confirmed</div>
+    <div class="ic-body">Urea and DAP remain well outside historical affordability bands. March levels represent a regime shift, not a seasonal aberration.</div>
+  </div>
+  <div class="ic">
+    <div class="ic-tag"><div class="ic-line" style="background:var(--amber);"></div>Supply Shock</div>
+    <div class="ic-head">Import path far below requirement</div>
+    <div class="ic-body">Demand destruction is already visible in Kenya's import trajectory. April volumes forecast to fall ~65% versus March — far below seasonal requirement.</div>
+  </div>
+  <div class="ic">
+    <div class="ic-tag"><div class="ic-line" style="background:var(--red);"></div>Food System Risk</div>
+    <div class="ic-head">Nitrogen-led production stress</div>
+    <div class="ic-body">Yield loss sits in a crisis range of 12–22%. A nitrogen deficit of -35.6% is the binding constraint with direct food-price and import-dependence implications.</div>
+  </div>
+  <!-- Warning box -->
+  <div class="warn-box">
+    <div class="wb-label">Market Signal</div>
+    <div class="wb-main">WARNING</div>
+    <div class="wb-sub">Shortage Risk</div>
+  </div>
+  <!-- Mini price grid -->
+  <div class="mpgrid">
+    <div class="mpg mpg-hd" style="background:#f6f6f4;"></div>
+    <div class="mpg mpg-hd">DAP</div>
+    <div class="mpg mpg-hd">Urea</div>
+    <div class="mpg mpg-hd">CAN</div>
+    <div class="mpg mpg-hd">NPK</div>
+    <div class="mpg mpg-lbl">CFR</div>
+    <div class="mpg"><span class="mpv mpv1">$850</span></div>
+    <div class="mpg"><span class="mpv mpv1">$850</span></div>
+    <div class="mpg"><span class="mpv mpv1">$850</span></div>
+    <div class="mpg"><span class="mpv mpv1">$850</span></div>
+    <div class="mpg mpg-lbl">EXW equiv.</div>
+    <div class="mpg"><span class="mpv mpv2">$850</span></div>
+    <div class="mpg"><span class="mpv mpv2">$850</span></div>
+    <div class="mpg"><span class="mpv mpv2">$850</span></div>
+    <div class="mpg"><span class="mpv mpv2">$850</span></div>
+    <div class="mpg mpg-lbl mpg-last" style="border-bottom:none;">EXW current</div>
+    <div class="mpg mpg-last" style="border-bottom:none;"><span class="mpv mpv3">$850</span></div>
+    <div class="mpg mpg-last" style="border-bottom:none;"><span class="mpv mpv3">$850</span></div>
+    <div class="mpg mpg-last" style="border-bottom:none;"><span class="mpv mpv3">$850</span></div>
+    <div class="mpg mpg-last" style="border-bottom:none;"><span class="mpv mpv3">$850</span></div>
+  </div>
+</div>
+
+<!-- MAIN 3-COLUMN AREA -->
+<div class="main">
+
+  <!-- LEFT: Procurement Tracker -->
+  <div class="card">
+    <div class="ch">
+      <div>
+        <div class="ch-t">Kenya Imports &amp; Procurement Tracker</div>
+        <div class="ch-s">Actual Jan–Mar · Severe S3 forecast Apr–Dec vs 2025 required path</div>
+      </div>
+    </div>
+    <div class="cb" style="padding-bottom:6px;">
+      <div class="cw" style="height:165px;"><canvas id="cumul"></canvas></div>
+      <div class="leg" style="margin:6px 0 10px;gap:10px;">
+        <span class="lg-i"><span class="lg-sq" style="background:rgba(10,143,92,.2);border:1px solid rgba(10,143,92,.35);"></span>Cumulative S3 range</span>
+        <span class="lg-i"><span class="lg-ln" style="background:var(--green);"></span>Cumulative official</span>
+        <span class="lg-i"><span class="lg-ln" style="background:#18181b;"></span>Required / 2025 baseline</span>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--bdr);padding:10px 12px 10px;">
+      <div class="cw" style="height:140px;"><canvas id="monthly"></canvas></div>
+      <div class="leg" style="margin-top:7px;gap:8px;">
+        <span class="lg-i"><span class="lg-sq" style="background:#4dabf7;"></span>CAN</span>
+        <span class="lg-i"><span class="lg-sq" style="background:var(--green);"></span>DAP</span>
+        <span class="lg-i"><span class="lg-sq" style="background:#82c91e;"></span>NPK</span>
+        <span class="lg-i"><span class="lg-sq" style="background:#ced4da;"></span>Other</span>
+        <span class="lg-i"><span class="lg-sq" style="background:#1971c2;"></span>Urea</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDDLE: EAF Price Trajectories -->
+  <div class="card">
+    <div class="ch">
+      <div>
+        <div class="ch-t">EAF CFR Price Trajectories — Urea &amp; DAP</div>
+        <div class="ch-s">2025 history · 2026 actuals + S3 forecast range</div>
+      </div>
+      <div class="tf">
+        <button class="tfb on" onclick="doTF(this)">ALL</button>
+        <button class="tfb" onclick="doTF(this)">1Y</button>
+        <button class="tfb" onclick="doTF(this)">YTD</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--bdr);">
+      <div style="padding:8px 12px;border-right:1px solid var(--bdr);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:10px;font-weight:600;color:var(--t2);">Granular Urea EAF CFR</span>
+          <span class="bd bd-r">$887 · Mar-26</span>
+        </div>
+        <div class="cw" style="height:200px;"><canvas id="uD"></canvas></div>
+      </div>
+      <div style="padding:8px 12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:10px;font-weight:600;color:var(--t2);">DAP EAF CFR</span>
+          <span class="bd bd-a">$820 · Mar-26</span>
+        </div>
+        <div class="cw" style="height:200px;"><canvas id="dD"></canvas></div>
+      </div>
+    </div>
+    <div style="padding:7px 12px;">
+      <div class="leg" style="gap:14px;">
+        <span class="lg-i"><span class="lg-sq" style="background:rgba(201,37,45,.15);border:1px solid rgba(201,37,45,.3);"></span>S3 forecast band</span>
+        <span class="lg-i"><span class="lg-ln" style="background:var(--red);"></span>S3 central</span>
+        <span class="lg-i"><span class="lg-ln" style="background:var(--green);"></span>Actual 2026</span>
+        <span class="lg-i"><span class="lg-da" style="border-color:#b0b0ac;"></span>2025 history</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Market Intelligence Feed -->
+  <div class="card" style="display:flex;flex-direction:column;">
+    <div class="ch">
+      <div class="ch-t">Market Intelligence Feed</div>
+      <span class="bd-active">3 Active</span>
+    </div>
+    <div class="nf">
+      <div class="ni">
+        <span class="nb nb-r">RED</span>
+        <div class="ni-b">
+          <div class="ni-cat">Geopolitical / Price</div>
+          <div class="ni-title">Middle East escalation drives fresh urea spike</div>
+          <div class="ni-desc">Direct risk to nitrogen pricing and supply confidence across East Africa.</div>
+          <span class="ni-action">→ Re-run price path</span>
+        </div>
+        <div class="ni-date">Mar 06</div>
+      </div>
+      <div class="ni">
+        <span class="nb nb-a">AMBER</span>
+        <div class="ni-b">
+          <div class="ni-cat">Routing / Supply</div>
+          <div class="ni-title">Maaden assessing alternate export routing</div>
+          <div class="ni-desc">Red Sea trade-route stress. Confirms shipment uncertainty.</div>
+          <span class="ni-action">→ Monitor Red Sea logistics</span>
+        </div>
+        <div class="ni-date">Mar 17</div>
+      </div>
+      <div class="ni">
+        <span class="nb nb-a">AMBER</span>
+        <div class="ni-b">
+          <div class="ni-cat">Demand / Seasonality</div>
+          <div class="ni-title">Long rains procurement delays widening</div>
+          <div class="ni-desc">Farmer surveys indicate 40–60% reduction in planned fertiliser purchases.</div>
+          <span class="ni-action">→ Update demand model</span>
+        </div>
+        <div class="ni-date">Mar 28</div>
+      </div>
+      <div class="ni">
+        <span class="nb nb-a">AMBER</span>
+        <div class="ni-b">
+          <div class="ni-cat">Demand / Seasonality</div>
+          <div class="ni-title">Long rains procurement delays widening</div>
+          <div class="ni-desc">Farmer surveys indicate 40–60% reduction in planned fertiliser purchases.</div>
+          <span class="ni-action">→ Update demand model</span>
+        </div>
+        <div class="ni-date">Mar 28</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM ROW -->
+<div class="bot">
+
+  <!-- ME Matrix -->
+  <div class="card">
+    <div class="ch">
+      <div>
+        <div class="ch-t">Middle East Dependence vs Supplier Depth</div>
+        <div class="ch-s">Country positioning · supply concentration risk</div>
+      </div>
+    </div>
+    <div class="cb">
+      <div class="cw" style="height:200px;"><canvas id="me"></canvas></div>
+      <div style="font-size:9px;color:var(--t4);text-align:right;margin-top:4px;">Source — AFRIQOM Analytics</div>
+    </div>
+  </div>
+
+  <!-- Availability -->
+  <div class="card">
+    <div class="ch">
+      <div>
+        <div class="ch-t">Fertiliser Availability</div>
+      </div>
+      <div class="tg">
+        <button class="tgb on" onclick="togA('MT',this)">MT</button>
+        <button class="tgb" onclick="togA('%',this)">%</button>
+      </div>
+    </div>
+    <div style="padding:8px 12px 10px;">
+      <div class="cw" style="height:160px;"><canvas id="avail"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Shortfall Forecast -->
+  <div class="card">
+    <div class="ch">
+      <div>
+        <div class="ch-t">Fertiliser Shortfall Forecast</div>
+      </div>
+      <span class="bd bd-r" style="font-size:9px;">-37.7% YOY</span>
+    </div>
+    <div class="cb">
+      <div class="cw" style="height:178px;"><canvas id="short"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Supply gap table -->
+  <div class="card">
+    <div class="ch">
+      <div class="ch-t">Supply Gap by Product</div>
+    </div>
+    <div style="padding:0;">
+      <table class="stbl">
+        <thead>
+          <tr><th style="padding-left:10px;">Product</th><th>2025 (t)</th><th>2026 (t)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td style="padding-left:10px;">Urea</td><td>242,950</td><td class="rv">71,122</td></tr>
+          <tr><td style="padding-left:10px;">CAN</td><td>118,700</td><td class="rv">58,724</td></tr>
+          <tr><td style="padding-left:10px;">DAP</td><td>185,400</td><td class="av">178,244</td></tr>
+          <tr><td style="padding-left:10px;">NPK</td><td>199,560</td><td class="av">161,470</td></tr>
+          <tr><td style="padding-left:10px;">TSP</td><td>15,000</td><td class="rv">7,653</td></tr>
+          <tr><td style="padding-left:10px;">AN</td><td>6,638</td><td class="rv">1,522</td></tr>
+          <tr class="tot"><td style="padding-left:10px;">TOTAL</td><td>768,248</td><td class="rv">478,735</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="shrink">
+      <div class="sl">Market Shrinkage Risk</div>
+      <div class="sv">289,513 t</div>
+      <div class="ss">-37.7% of 2025 market · Severe S3 scenario</div>
+    </div>
+  </div>
+</div>
+
+<script>
+Chart.defaults.font.family="'Sora',sans-serif";
+Chart.defaults.font.size=9.5;
+Chart.defaults.color='#a1a1aa';
+const G='#efefec',GN='#0a8f5c',RD='#c9252d',AM='#c97a00',BL='#1971c2';
+const tip={
+  backgroundColor:'rgba(24,24,27,.94)',borderColor:'rgba(228,228,231,.12)',borderWidth:1,
+  padding:9,titleColor:'#fafafa',bodyColor:'#a1a1aa',
+  titleFont:{size:11,weight:'700'},bodyFont:{size:9.5,family:"'JetBrains Mono'"}
+};
+
+// DATA
+const mos=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const allL=['J-25','F','M','A','M','J','J','A','S','O','N','D','J-26','F','M','A','M','J','J','A','S','O','N','D'];
+const uA=[414.9,460,420,415.4,406.7,443.1,509.5,529.2,457.5,428.4,440.8,424.8,456.2,522.9,887.5];
+const uFull=[...uA,...Array(9).fill(null)];
+const u25=[...uA.slice(0,12),...Array(12).fill(null)];
+const uF=Array(15).fill(null).concat([961,1016.7,988.9,947.1,954.1,947.1,919.2,912.3,905.3]);
+const uFH=Array(15).fill(null).concat([1050,1100,1070,1030,1040,1030,1000,990,980]);
+const uFL=Array(15).fill(null).concat([880,940,910,870,875,870,845,838,832]);
+const dA=[644,650,661,672.5,705.5,738.8,787.5,800.7,802.8,762.7,721.3,695,695,718.1,820];
+const dFull=[...dA,...Array(9).fill(null)];
+const d25=[...dA.slice(0,12),...Array(12).fill(null)];
+const dF=Array(15).fill(null).concat([905,957.8,931.5,892.2,898.7,892.2,865.9,859.4,852.8]);
+const dFH=Array(15).fill(null).concat([980,1030,1000,960,965,960,935,928,920]);
+const dFL=Array(15).fill(null).concat([840,880,860,825,832,825,800,793,788]);
+
+const IC={
+  CAN: [10600,20900,0,4010,7006,2416,1666,2465,1024,3172,3371,2095],
+  DAP: [32750,8000,42900,14085,3984,3943,10925,1779,10252,15874,11969,21785],
+  NPK: [28666,9000,21985,15160,4289,4244,11759,1914,11035,17086,12883,23449],
+  Oth: [0,0,0,1364,711,454,977,282,886,1461,1157,1880],
+  Urea:[15400,0,0,8208,14339,4946,3410,5045,2095,6491,6900,4287],
+};
+const I25=[69700,41900,44570,47352,105450,29658,29800,24460,30500,73600,124500,146758];
+function cs(a){let s=0;return a.map(v=>s+=v);}
+const I26tot=mos.map((_,i)=>IC.CAN[i]+IC.DAP[i]+IC.NPK[i]+IC.Oth[i]+IC.Urea[i]);
+const c26=cs(I26tot),c25=cs(I25);
+const c26hi=c26.map(v=>Math.round(v*1.05)),c26lo=c26.map(v=>Math.round(v*.95));
+
+// PRICE CHART BUILDER
+function mkPrice(id,actFull,fcst,fcstHi,fcstLo,hist,yMin,yMax,fcColor){
+  new Chart(document.getElementById(id),{
+    type:'line',
+    data:{labels:allL,datasets:[
+      {data:fcstHi,borderColor:'transparent',backgroundColor:fcColor+'18',fill:'+1',pointRadius:0,tension:.3},
+      {data:fcstLo,borderColor:'transparent',fill:false,pointRadius:0,tension:.3},
+      {data:fcst,borderColor:fcColor+'bb',borderWidth:1.5,borderDash:[5,3],pointRadius:0,fill:false,tension:.3},
+      {data:actFull,borderColor:GN,borderWidth:2,pointRadius:c=>c.dataIndex===14?4:0,pointBackgroundColor:GN,pointBorderColor:'#fff',pointBorderWidth:1.5,fill:false,tension:.35},
+      {data:hist,borderColor:'rgba(160,160,156,.5)',borderWidth:1.5,borderDash:[2,2],pointRadius:0,fill:false,tension:.35},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>c.parsed.y?`$${c.parsed.y}/t`:null}}},
+      scales:{
+        x:{grid:{color:G},ticks:{color:'#b0b0ab',maxRotation:0,autoSkip:true,maxTicksLimit:8,font:{size:8}}},
+        y:{min:yMin,max:yMax,grid:{color:G},ticks:{color:'#b0b0ab',callback:v=>'$'+v,font:{size:8}}}
+      }
+    }
+  });
+}
+mkPrice('uD',uFull,uF,uFH,uFL,u25,340,1130,RD);
+mkPrice('dD',dFull,dF,dFH,dFL,d25,560,1080,AM);
+
+// CUMULATIVE
+new Chart(document.getElementById('cumul'),{
+  type:'line',
+  data:{labels:mos,datasets:[
+    {data:c26hi,borderColor:'transparent',backgroundColor:'rgba(10,143,92,.08)',fill:'+1',pointRadius:0,tension:.4},
+    {data:c26lo,borderColor:'transparent',fill:false,pointRadius:0,tension:.4},
+    {label:'Required',data:c25,borderColor:'#18181b',borderWidth:2,pointRadius:0,fill:false,tension:.4},
+    {label:'S3',data:c26,borderColor:GN,borderWidth:2.5,pointRadius:2.5,pointBackgroundColor:GN,pointBorderColor:'#fff',pointBorderWidth:1.5,fill:false,tension:.4},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>c.dataset.label?`${c.dataset.label}: ${Math.round(c.raw/1000)}k t`:null}}},
+    scales:{
+      x:{grid:{color:G},ticks:{color:'#b0b0ab',font:{size:8.5}}},
+      y:{grid:{color:G},ticks:{color:'#b0b0ab',callback:v=>(v/1000).toFixed(0)+'k',font:{size:8.5}}}
+    }
+  }
+});
+
+// MONTHLY STACKED
+new Chart(document.getElementById('monthly'),{
+  type:'bar',
+  data:{labels:mos,datasets:[
+    {label:'CAN', data:IC.CAN, backgroundColor:'#74c0fc',stack:'s',borderRadius:0},
+    {label:'DAP', data:IC.DAP, backgroundColor:GN+'cc',stack:'s'},
+    {label:'NPK', data:IC.NPK, backgroundColor:'#94d82d',stack:'s'},
+    {label:'Oth', data:IC.Oth, backgroundColor:'#ced4da',stack:'s'},
+    {label:'Urea',data:IC.Urea,backgroundColor:'#1971c2cc',stack:'s'},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{...tip,mode:'index'}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#b0b0ab',font:{size:8.5}}},
+      y:{stacked:true,grid:{color:G},ticks:{color:'#b0b0ab',callback:v=>v>=1000?Math.round(v/1000)+'k':v,font:{size:8.5}}}
+    }
+  }
+});
+
+// AVAILABILITY
+let availMT=true, availInst=null;
+const av25=[185400,242950,118700,199560,15000];
+const av26=[178244,71122,58724,161470,7653];
+const avN=['DAP','Urea','CAN','NPK','TSP'];
+const avC=[GN,'#e03131',AM,BL,'#7950f2'];
+function buildAvail(){
+  if(availInst)availInst.destroy();
+  const d25=availMT?av25.map(v=>+(v/1000).toFixed(0)):av25.map(()=>100);
+  const d26=availMT?av26.map(v=>+(v/1000).toFixed(0)):av26.map((v,i)=>+(v/av25[i]*100).toFixed(0));
+  const suf=availMT?'k':'%';
+  availInst=new Chart(document.getElementById('avail'),{
+    type:'bar',
+    data:{labels:avN,datasets:[
+      {label:'2025',data:d25,backgroundColor:'rgba(228,228,228,.6)',borderRadius:3,barPercentage:.55},
+      {label:'2026',data:d26,backgroundColor:avC.map(c=>c+'cc'),borderRadius:3,barPercentage:.55},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...tip,mode:'index',callbacks:{label:c=>`${c.dataset.label}: ${c.raw}${suf}`}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#b0b0ab',font:{size:8.5}}},
+        y:{grid:{color:G},ticks:{color:'#b0b0ab',callback:v=>v+suf,font:{size:8.5}}}
+      }
+    }
+  });
+}
+buildAvail();
+
+// SHORTFALL
+new Chart(document.getElementById('short'),{
+  type:'bar',
+  data:{labels:['Jan','Mar','May','Jul','Sep','Nov'],datasets:[
+    {label:'2025',data:[69.7,44.6,105.5,29.8,30.5,124.5],backgroundColor:'#e8e8e4',borderRadius:3,barPercentage:.55},
+    {label:'2026',data:[87.4,64.9,30.3,28.7,25.3,36.3],backgroundColor:GN+'bb',borderRadius:3,barPercentage:.55},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...tip,mode:'index',callbacks:{label:c=>`${c.dataset.label}: ${c.raw}kt`}}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#b0b0ab',font:{size:8.5}}},
+      y:{grid:{color:G},ticks:{color:'#b0b0ab',callback:v=>v+'k',font:{size:8.5}}}
+    }
+  }
+});
+
+// ME MATRIX
+const mePlugin={
+  id:'meLbl',
+  afterDatasetsDraw(c){
+    c.data.datasets.forEach((ds,di)=>{
+      const m=c.getDatasetMeta(di),pt=m.data[0];if(!pt)return;
+      const isK=ds.label==='Kenya';
+      c.ctx.save();
+      c.ctx.fillStyle=isK?GN:'#71717a';
+      c.ctx.font=(isK?'bold ':'')+'9.5px Sora';
+      c.ctx.textAlign='center';c.ctx.textBaseline='bottom';
+      c.ctx.fillText(ds.label,pt.x,pt.y-pt.options.radius-4);
+      c.ctx.restore();
+    });
+    const sc=c.scales;
+    const x1=sc.x.getPixelForValue(32),x2=sc.x.getPixelForValue(59);
+    const y1=sc.y.getPixelForValue(8),y2=sc.y.getPixelForValue(0);
+    c.ctx.save();
+    c.ctx.strokeStyle='rgba(201,37,45,.28)';c.ctx.lineWidth=1.5;c.ctx.setLineDash([4,3]);
+    c.ctx.strokeRect(x1,y1,x2-x1,y2-y1);
+    c.ctx.fillStyle='rgba(201,37,45,.04)';c.ctx.fillRect(x1,y1,x2-x1,y2-y1);
+    c.ctx.fillStyle='rgba(201,37,45,.38)';c.ctx.font='7.5px JetBrains Mono';
+    c.ctx.textAlign='center';c.ctx.textBaseline='top';c.ctx.setLineDash([]);
+    c.ctx.fillText('HIGH ME DEPENDENCE · LOW SUPPLIER POOL',x1+(x2-x1)/2,y1+5);
+    c.ctx.restore();
+  }
+};
+new Chart(document.getElementById('me'),{
+  type:'bubble',
+  data:{datasets:[
+    {label:'Kenya',       data:[{x:43,y:4,r:14}], backgroundColor:GN+'bb',borderColor:GN,borderWidth:2},
+    {label:'Ethiopia',    data:[{x:49,y:12,r:11}],backgroundColor:'#d4d4d877',borderColor:'#a1a1aa',borderWidth:1},
+    {label:'South Africa',data:[{x:34,y:11,r:13}],backgroundColor:'#d4d4d877',borderColor:'#a1a1aa',borderWidth:1},
+    {label:'Tanzania',    data:[{x:22,y:9,r:9}],  backgroundColor:'#d4d4d877',borderColor:'#a1a1aa',borderWidth:1},
+    {label:'Ghana',       data:[{x:8,y:6,r:8}],   backgroundColor:'#d4d4d866',borderColor:'#a1a1aa',borderWidth:1},
+    {label:'Nigeria',     data:[{x:2,y:2,r:12}],  backgroundColor:'#d4d4d866',borderColor:'#a1a1aa',borderWidth:1},
+    {label:"Côte d'Ivoire",data:[{x:4,y:11,r:7}], backgroundColor:'#d4d4d855',borderColor:'#a1a1aa',borderWidth:1},
+  ]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...tip,callbacks:{label:c=>`${c.dataset.label} · ME ${c.raw.x}%`}}},
+    scales:{
+      x:{min:-5,max:60,title:{display:true,text:'Middle East Import Dependence (%)',color:'#a1a1aa',font:{size:9}},grid:{color:G},ticks:{color:'#b0b0ab',callback:v=>v+'%',font:{size:8.5}}},
+      y:{min:0,max:16,title:{display:true,text:'Supplier Depth Index',color:'#a1a1aa',font:{size:9}},grid:{color:G},ticks:{color:'#b0b0ab',font:{size:8.5}}}
+    }
+  },
+  plugins:[mePlugin]
+});
+
+// HANDLERS
+function doTF(btn){document.querySelectorAll('.tfb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+function togA(mode,btn){
+  availMT=mode==='MT';
+  document.querySelectorAll('.tgb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');buildAvail();
+}
+</script>
+</body>
+</html>
